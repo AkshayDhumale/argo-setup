@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: devops-01
+  namespace: argocd
+  # Finalizer that ensures that project is not deleted until it is not referenced by any application
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project description
+  description: The following project demonstrate the implementation of argocd
+
+  # Allow manifests to deploy from any Git repos
+  sourceRepos:
+    - "*"
+
+  # Only permit applications to deploy to the guestbook namespace in the same cluster
+  # Destination clusters can be identified by 'server', 'name', or both.
+  destinations:
+    - namespace: "*"
+      server: "*"
+
+  # Deny all cluster-scoped resources from being created, except for Namespace
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  roles:
+    # A role which provides read-only access to all applications in the project
+    - name: ops
+      description: application level privileges to my-project
+      policies:
+        - p, proj:devops-01:ops, applications, get, *, allow
+        - p, proj:devops-01:ops, applications, sync, *, allow
+        - p, proj:devops-01:ops, repositories, get, *, allow
+        - p, proj:devops-01:ops, clusters, get, *, allow
+        - p, proj:devops-01:ops, projects, get, *, allow
+        - p, proj:devops-01:ops, accounts, get, *, allow
+        - p, proj:devops-01:ops, logs, get, *, allow
+      groups:
+        - ops
+
+    - name: check
+      description: application level privileges to my-project
+      policies:
+        - p, proj:devops-01:check, applications, get, *, allow
+      groups:
+        - dev
